@@ -1,0 +1,1253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Almtger Template Language Syntax — Documentation</title>
+<meta name="description" content="Syntax reference for the &lt;{ }&gt; almtger template language: echo statements, assign, conditionals, loops, chaining, fallback operators, built-in functions and context structure.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============ Tokens ============ */
+:root{
+    --paper: #EDEFE9;
+    --paper-2: #E3E6DE;
+    --ink: #1B1F2A;
+    --ink-soft: #565F72;
+    --border: rgba(27,31,42,.13);
+    --border-strong: rgba(27,31,42,.22);
+
+    --editor: #1B1F2A;
+    --editor-2: #232838;
+    --output: #FCFCFA;
+
+    --gold: #D9971F;
+    --gold-soft: #E6B457;
+    --cyan: #3FA9BB;
+    --cyan-soft: #6FC2D1;
+    --violet: #8C63B8;
+    --violet-soft: #A98AD0;
+    --sage: #5C9A54;
+    --sage-soft: #8FCB87;
+    --amber: #C98A2B;
+    --amber-soft: #F2C879;
+    --var-color: #C9D3E0;
+    --muted-code: #8B93A8;
+
+    --rose: #C75B6E;
+    --rose-soft: #E88899;
+
+    --radius: 10px;
+    --max: 760px;
+    --sidebar-w: 272px;
+    --topbar-h: 60px;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{
+    font-family:'Space Grotesk', system-ui, sans-serif;
+    font-weight:600;
+    line-height:1.15;
+    margin:0 0 .5em;
+    color:var(--ink);
+}
+p{margin:0 0 1em;}
+a{color:inherit;}
+code, pre, .mono{font-family:'JetBrains Mono', ui-monospace, monospace;}
+img,svg{max-width:100%;display:block;}
+section[id], div[id]{scroll-margin-top: 92px;}
+
+.skip-link{
+    position:absolute; left:-999px; top:0; background:var(--ink); color:var(--paper);
+    padding:10px 16px; border-radius:0 0 8px 0; z-index:200; font-size:14px;
+}
+.skip-link:focus{left:0;}
+
+:focus-visible{outline:2px solid var(--gold); outline-offset:2px;}
+
+/* ============ Token bar ============ */
+.token-bar{
+    height:4px; width:100%;
+    background:linear-gradient(90deg, var(--gold), var(--cyan), var(--violet), var(--sage-soft), var(--amber));
+}
+
+/* ============ Brand ============ */
+.brand{
+    display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--ink);
+}
+.brand-mark{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:600;
+    font-size:15px;
+    background:var(--ink);
+    color:var(--gold-soft);
+    padding:5px 8px;
+    border-radius:6px;
+    letter-spacing:.02em;
+}
+.brand-word{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:17px;
+    letter-spacing:-.01em;
+}
+
+/* ============ Topbar (mobile) ============ */
+.topbar{
+    display:none;
+    position:sticky; top:0; z-index:100;
+    height:var(--topbar-h);
+    align-items:center; gap:14px;
+    padding:0 16px;
+    background:var(--paper);
+    border-bottom:1px solid var(--border);
+    backdrop-filter:saturate(140%) blur(6px);
+}
+.nav-toggle{
+    width:36px; height:32px; padding:0; border:0; background:transparent; cursor:pointer;
+    display:flex; flex-direction:column; justify-content:center; align-items:center; gap:6px;
+}
+.nav-toggle span{
+    display:block; width:22px; height:2px; background:var(--ink); border-radius:2px;
+    transition:transform .25s ease, opacity .25s ease;
+}
+.nav-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(8px) rotate(45deg);}
+.nav-toggle[aria-expanded="true"] span:nth-child(2){opacity:0;}
+.nav-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-8px) rotate(-45deg);}
+
+.nav-overlay{
+    display:none;
+    position:fixed; inset:0; background:rgba(27,31,42,.35); z-index:90; opacity:0;
+    transition:opacity .25s ease;
+}
+.nav-overlay.show{display:block; opacity:1;}
+
+/* ============ Layout ============ */
+.layout{
+    display:grid;
+    grid-template-columns: var(--sidebar-w) minmax(0,1fr);
+    max-width:1280px;
+    margin:0 auto;
+}
+.sidebar{
+    border-right:1px solid var(--border);
+    height:100vh;
+    position:sticky; top:0;
+    overflow-y:auto;
+    padding:28px 22px 60px;
+}
+.sidebar-inner{display:flex; flex-direction:column; gap:26px;}
+.brand-desktop{margin-bottom:4px;}
+
+nav[aria-label="Table of contents"] ul{
+    list-style:none; margin:0; padding:0;
+}
+nav[aria-label="Table of contents"] ul ul{
+    margin-top:4px; margin-bottom:8px;
+}
+.toc > li{margin-bottom:2px;}
+.toc a{
+    display:block;
+    text-decoration:none;
+    color:var(--ink-soft);
+    font-size:14.5px;
+    padding:6px 0 6px 14px;
+    border-left:2px solid transparent;
+    transition:color .15s ease, border-color .15s ease;
+}
+.toc .lvl1 > a{
+    font-weight:600; color:var(--ink); font-size:15px; border-left-color: var(--border-strong);
+}
+.toc .lvl2 > a{border-left-color: var(--border);}
+.toc .lvl3 > a{font-size:13.5px; border-left-color: var(--border);}
+.toc .lvl4 > a{font-size:13px; border-left-color: var(--border);}
+.toc .lvl1 > a:hover, .toc .lvl1 > a.active{border-left-color:var(--gold); color:var(--ink);}
+.toc .lvl2 > a:hover, .toc .lvl2 > a.active{border-left-color:var(--cyan); color:var(--ink);}
+.toc .lvl3 > a:hover, .toc .lvl3 > a.active{border-left-color:var(--violet); color:var(--ink);}
+.toc .lvl4 > a:hover, .toc .lvl4 > a.active{border-left-color:var(--sage); color:var(--ink);}
+.toc a.active{font-weight:600;}
+
+main{padding:0 48px 100px; min-width:0;}
+main > section, main .block{max-width:var(--max); margin:0 auto;}
+
+/* ============ Hero ============ */
+.hero{
+    max-width:900px !important;
+    padding:72px 0 56px;
+}
+.hero-brackets{
+    font-family:'JetBrains Mono', monospace;
+    font-size:15px;
+    color:var(--gold);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    margin-bottom:18px;
+    display:flex; align-items:center; gap:8px;
+}
+.hero-brackets::before, .hero-brackets::after{
+    content:""; height:1px; width:24px; background:var(--border-strong);
+}
+.hero h1{
+    font-size:clamp(2.4rem, 5vw, 3.6rem);
+    letter-spacing:-.02em;
+    margin-bottom:.35em;
+}
+.hero h1 .bk{color:var(--gold);}
+.hero-lede{
+    font-size:18px;
+    color:var(--ink-soft);
+    max-width:52ch;
+    margin-bottom:34px;
+}
+.hero .code-card{margin-bottom:0;}
+
+/* ============ Prose sections ============ */
+.eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:10px;
+}
+section#introduction, section#simple-example, section#syntax, section#examples, section#context{
+    padding-top:64px;
+}
+section#introduction h1, section#simple-example h1, section#syntax h1, section#examples h1, section#context h1{
+    font-size:clamp(1.9rem, 3.4vw, 2.5rem);
+}
+.lede{font-size:17px; color:var(--ink-soft); max-width:62ch;}
+
+.block{padding-top:48px;}
+.block h2{font-size:clamp(1.35rem, 2.6vw, 1.7rem);}
+.block h3{font-size:1.18rem; margin-top:6px;}
+.block h4{font-size:1.02rem;}
+.block-sub{padding-top:34px; padding-left:20px; border-left:2px solid var(--border); margin-left:2px;}
+.block-sub.deep{padding-left:20px;}
+
+.chip-legend{
+    display:flex; flex-wrap:wrap; gap:10px 18px;
+    padding:16px 18px;
+    background:var(--paper-2);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    margin:18px 0 8px;
+}
+.chip-legend .item{
+    display:flex; align-items:center; gap:7px;
+    font-size:13px; color:var(--ink-soft);
+}
+.chip-legend .dot{width:9px; height:9px; border-radius:50%; flex:none;}
+.chip-legend code{font-size:12.5px; background:none; padding:0; color:var(--ink);}
+.dot.tg{background:var(--gold);}
+.dot.eg{background:var(--cyan);}
+.dot.kw{background:var(--violet);}
+.dot.st{background:var(--sage);}
+.dot.nm{background:var(--amber);}
+.dot.as{background:var(--rose);}
+
+.callout{
+    border-left:3px solid var(--cyan);
+    background:rgba(63,169,187,.08);
+    padding:14px 16px;
+    border-radius:0 8px 8px 0;
+    font-size:14.5px;
+    color:var(--ink-soft);
+    margin:18px 0;
+}
+.callout strong{color:var(--ink);}
+.callout.warn{border-left-color:var(--amber); background:rgba(201,138,43,.08);}
+
+/* ============ Data-given caption ============ */
+.ex-given{
+    display:flex; align-items:baseline; gap:8px;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0 0 10px;
+}
+.ex-given .tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    background:var(--paper-2);
+    border:1px solid var(--border);
+    padding:2px 7px;
+    border-radius:5px;
+    color:var(--ink-soft);
+    flex:none;
+}
+.ex-given code{background:none; padding:0; font-size:12.5px;}
+
+/* ============ Code card ============ */
+.code-card{
+    display:flex;
+    border:1px solid var(--border-strong);
+    border-radius:var(--radius);
+    overflow:hidden;
+    margin:14px 0 30px;
+    box-shadow: 0 1px 0 rgba(27,31,42,.03);
+}
+.pane{
+    flex:1 1 50%;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+}
+.pane-tpl{background:var(--editor); color:var(--var-color);}
+.pane-out{background:var(--output); color:var(--ink); border-left:1px solid var(--border-strong);}
+.pane-head{
+    display:flex; align-items:center; gap:7px;
+    padding:9px 14px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    flex:none;
+}
+.pane-tpl .pane-head{background:var(--editor-2); color:var(--gold-soft); border-bottom:1px solid rgba(255,255,255,.06);}
+.pane-out .pane-head{background:var(--paper-2); color:var(--ink-soft); border-bottom:1px solid var(--border);}
+.pane-head .arrow{opacity:.7;}
+.pane pre{
+    margin:0; padding:16px 18px 18px;
+    overflow-x:auto;
+    font-size:13.3px;
+    line-height:1.75;
+    flex:1;
+}
+.pane-tpl pre{color:var(--var-color);}
+.pane-out .out-body{padding:18px; flex:1; display:flex; flex-direction:column; justify-content:center;}
+
+/* template token colors */
+.pane-tpl .t{color:var(--gold-soft); font-weight:600;}
+.pane-tpl .e{color:var(--cyan-soft); font-weight:600;}
+.pane-tpl .k{color:var(--violet-soft);}
+.pane-tpl .s{color:var(--sage-soft);}
+.pane-tpl .n{color:var(--amber-soft);}
+.pane-tpl .o{color:var(--cyan-soft);}
+.pane-tpl .h{color:var(--muted-code);}
+.pane-tpl .p{color:var(--muted-code);}
+.pane-tpl .a{color:var(--rose-soft);}
+
+@media (max-width:780px){
+    .code-card{flex-direction:column;}
+    .pane-out{border-left:none; border-top:1px solid var(--border-strong);}
+}
+
+/* ============ Rendered-output mini UI kit ============ */
+.out-body p{margin:0 0 8px; font-size:14.5px;}
+.out-body p:last-child{margin-bottom:0;}
+.out-list, .out-ol{margin:0; padding-left:20px; font-size:14.5px;}
+.out-list li, .out-ol li{margin-bottom:6px;}
+.out-list li:last-child, .out-ol li:last-child{margin-bottom:0;}
+
+.out-badge{
+    display:inline-flex; align-items:center; font-size:13px; font-weight:600;
+    padding:4px 10px; border-radius:999px; width:max-content;
+}
+.out-badge.out{background:#F3DADA; color:#93312E;}
+.out-badge.low{background:#F5E4C6; color:#8A5A12;}
+.out-badge.ok{background:#DCEBD8; color:#356B2D;}
+
+.out-btn{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:13.5px; font-weight:600;
+    padding:8px 14px; border-radius:7px; border:1px solid var(--border-strong);
+    background:var(--ink); color:var(--paper); width:max-content; cursor:default;
+}
+.out-btn[disabled]{background:transparent; color:var(--ink-soft); border-color:var(--border);}
+
+.out-tag{font-size:13.5px; color:var(--ink-soft);}
+
+.out-card-row{display:flex; flex-direction:column; gap:14px;}
+.out-card{
+    border:1px solid var(--border); border-radius:8px; padding:12px 14px;
+    display:flex; flex-direction:column; gap:6px; background:#fff;
+}
+.out-card h4{margin:0; font-size:14.5px; font-family:'IBM Plex Sans',sans-serif; font-weight:600;}
+.out-card .price{font-size:13px; color:var(--ink-soft);}
+
+.out-pillrow{display:flex; gap:6px; align-items:center; flex-wrap:wrap;}
+.out-pill{
+    font-size:13px; padding:5px 10px; border-radius:6px; color:var(--ink-soft);
+    border:1px solid var(--border); text-decoration:none;
+}
+.out-pill.active{background:var(--ink); color:var(--paper); border-color:var(--ink); font-weight:600;}
+
+.out-stack{display:flex; flex-direction:column; gap:12px;}
+.out-state-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); margin-bottom:4px;}
+
+/* ============ Table (operators) ============ */
+.op-table{
+    width:100%; border-collapse:collapse; margin:16px 0 28px; font-size:14.5px;
+}
+.op-table th, .op-table td{
+    text-align:left; padding:11px 14px; border-bottom:1px solid var(--border);
+    vertical-align:top;
+}
+.op-table th{
+    font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--ink-soft); font-weight:500;
+}
+.op-table td code{
+    background:var(--paper-2); padding:2px 6px; border-radius:4px; font-size:13px;
+}
+
+/* inline code in prose */
+main p code, main li code{
+    background:var(--paper-2); border:1px solid var(--border); padding:1px 6px;
+    border-radius:5px; font-size:13.5px;
+}
+
+/* equivalence rows for simpler-version */
+.equiv{
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:16px 18px; background:var(--editor); border-radius:var(--radius); margin:16px 0 28px;
+}
+.equiv .side{font-family:'JetBrains Mono', monospace; font-size:13.5px; color:var(--var-color);}
+.equiv .side .t{color:var(--gold-soft); font-weight:600;}
+.equiv .side .e{color:var(--cyan-soft); font-weight:600;}
+.equiv .side .k{color:var(--violet-soft);}
+.equiv .eq{color:var(--muted-code); font-size:12px; text-transform:uppercase; letter-spacing:.1em;}
+
+/* ============ Context tree ============ */
+.ctx-wrap{
+    border:1px solid var(--border-strong);
+    border-radius:var(--radius);
+    overflow:hidden;
+    margin:14px 0 30px;
+    box-shadow: 0 1px 0 rgba(27,31,42,.03);
+}
+.ctx-wrap .ctx-head{
+    display:flex; align-items:center; gap:7px;
+    padding:9px 14px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    background:var(--paper-2);
+    color:var(--ink-soft);
+    border-bottom:1px solid var(--border);
+}
+.ctx-body{
+    padding:20px 22px;
+    background:var(--output);
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    line-height:1.8;
+    overflow-x:auto;
+    max-height:620px;
+    overflow-y:auto;
+    white-space: pre-wrap;   /* preserves line breaks and indentation */
+    word-break: break-word;
+}
+.ctx-body .ck{color:var(--ink); font-weight:600;}
+.ctx-body .cs{color:var(--sage);}
+.ctx-body .cn{color:var(--amber);}
+.ctx-body .cb{color:var(--violet);}
+.ctx-body .cm{color:var(--muted-code); font-style:italic;}
+.ctx-body .cp{color:var(--muted-code);}
+.ctx-body .ct{color:var(--cyan);}
+.ctx-body .cr{color:var(--rose);}
+
+/* ============ Reveal ============ */
+.reveal{opacity:0; transform:translateY(14px); transition:opacity .5s ease, transform .5s ease;}
+.reveal.in-view{opacity:1; transform:none;}
+@media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    .reveal{transition:none; opacity:1; transform:none;}
+}
+
+/* ============ Footer ============ */
+footer{
+    max-width:var(--max); margin:80px auto 0; padding-top:24px; border-top:1px solid var(--border);
+    font-size:13px; color:var(--ink-soft);
+}
+
+/* ============ Responsive ============ */
+@media (max-width: 960px){
+    .topbar{display:flex;}
+    .nav-overlay{}
+    .layout{grid-template-columns:1fr; max-width:none;}
+    .sidebar{
+        position:fixed; top:var(--topbar-h); left:0; bottom:0; z-index:95;
+        width:280px; max-width:82vw;
+        background:var(--paper);
+        transform:translateX(-100%);
+        transition:transform .28s ease;
+        border-right:1px solid var(--border);
+    }
+    .sidebar.open{transform:translateX(0); box-shadow:8px 0 24px rgba(27,31,42,.12);}
+    .brand-desktop{display:none;}
+    main{padding:0 20px 80px;}
+    .hero{padding:40px 0 40px;}
+    .ctx-body{max-height:480px; font-size:11.5px; padding:14px 16px;}
+}
+@media (max-width: 520px){
+    .op-table{font-size:13px;}
+    .op-table th, .op-table td{padding:9px 8px;}
+    .ctx-body{font-size:10.5px; padding:10px 12px; max-height:380px;}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#top">Skip to content</a>
+<div class="token-bar"></div>
+
+<header class="topbar">
+    <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+    </button>
+    <a class="brand" href="#top">
+        <span class="brand-mark">&lt;{&nbsp;}&gt;</span>
+        <span class="brand-word">Almtger Template Language</span>
+    </a>
+</header>
+
+<div class="nav-overlay"></div>
+
+<div class="layout">
+    <aside class="sidebar">
+        <div class="sidebar-inner">
+            <a class="brand brand-desktop" href="#top">
+                <span class="brand-mark">&lt;{&nbsp;}&gt;</span>
+                <span class="brand-word">Almtger Template Language</span>
+            </a>
+            <nav aria-label="Table of contents">
+                <ul class="toc">
+                    <li class="lvl1"><a href="#introduction">Introduction</a></li>
+                    <li class="lvl1"><a href="#simple-example">Simple Example</a></li>
+                    <li class="lvl1">
+                        <a href="#syntax">Syntax</a>
+                        <ul>
+                            <li class="lvl2">
+                                <a href="#echo-statement">Echo Statement</a>
+                                <ul>
+                                    <li class="lvl3"><a href="#procedures-calculations">Procedures &amp; Calculations</a></li>
+                                    <li class="lvl3"><a href="#fallback-or">Fallback (OR)</a></li>
+                                    <li class="lvl3"><a href="#chaining">Chaining</a></li>
+                                    <li class="lvl3"><a href="#simpler-version">Simpler Version</a></li>
+                                    <li class="lvl3">
+                                        <a href="#functions">Functions</a>
+                                        <ul>
+                                            <li class="lvl4"><a href="#length">Length</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="lvl2"><a href="#assign-statement">Assign Statement</a></li>
+                            <li class="lvl2"><a href="#if-condition">If Condition</a></li>
+                            <li class="lvl2">
+                                <a href="#for-condition">For Condition</a>
+                                <ul>
+                                    <li class="lvl3"><a href="#loop-variable">Loop Variable</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="lvl1"><a href="#examples">Examples</a></li>
+                    <li class="lvl1"><a href="#context">Context</a></li>
+                </ul>
+            </nav>
+        </div>
+    </aside>
+
+    <main id="top">
+
+        <!-- ============ HERO ============ -->
+        <section class="hero" id="hero">
+            <div class="hero-brackets">Almtger Template Language syntax reference</div>
+            <h1><span class="bk">&lt;{</span> Teach your HTML to think <span class="bk">}&gt;</span></h1>
+            <p class="hero-lede">A small, readable syntax for embedding logic in HTML — statements live inside <code>&lt;{ }&gt;</code>, output lives inside <code>{{ }}</code>. Nothing else to learn before you start reading templates.</p>
+
+            <div class="code-card reveal">
+                <div class="pane pane-tpl">
+                    <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                    <pre><code>&lt;h1&gt;Hi, <span class="e">{{</span> user.name <span class="e">}}</span>&lt;/h1&gt;
+<span class="t">&lt;{</span> <span class="k">if</span> cart.items<span class="p">.</span><span class="o">length</span>() <span class="o">&gt;</span> <span class="n">0</span> <span class="t">}&gt;</span>
+&lt;p&gt;You have <span class="e">{{</span> cart.items<span class="p">.</span><span class="o">length</span>() <span class="e">}}</span> items waiting&lt;/p&gt;
+<span class="t">&lt;{</span> <span class="k">end if</span> <span class="t">}&gt;</span></code></pre>
+                </div>
+                <div class="pane pane-out">
+                    <div class="pane-head"><span class="arrow">→</span> Output</div>
+                    <div class="out-body">
+                        <p style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:20px;margin-bottom:6px;">Hi, Hero</p>
+                        <p>You have 2 items waiting</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ INTRODUCTION ============ -->
+        <section id="introduction">
+            <div class="eyebrow">01 — Overview</div>
+            <h1>Introduction</h1>
+            <p class="lede">This is a lightweight template language for generating HTML — the same idea behind Django templates, Jinja, or Liquid, with its own compact syntax.</p>
+            <p>Every template is plain HTML with two kinds of markers dropped in. <strong>Statement tags</strong> (<code>&lt;{ … }&gt;</code>) handle logic: echoing values, assigning variables, branching, and looping. <strong>Echo brackets</strong> (<code>{{ … }}</code>) are a shorthand just for printing a value — the one thing you'll write the most. Everything outside these markers is passed through untouched.</p>
+
+            <div class="chip-legend">
+                <span class="item"><i class="dot tg"></i> Statement — <code>&lt;{ }&gt;</code></span>
+                <span class="item"><i class="dot eg"></i> Echo — <code>{{ }}</code></span>
+                <span class="item"><i class="dot kw"></i> Keyword</span>
+                <span class="item"><i class="dot st"></i> String</span>
+                <span class="item"><i class="dot nm"></i> Number</span>
+                <span class="item"><i class="dot as"></i> Assign</span>
+            </div>
+            <p style="margin-top:14px;">The color key above is used consistently in every code sample on this page — the same colors also mark section depth in the sidebar.</p>
+        </section>
+
+        <!-- ============ SIMPLE EXAMPLE ============ -->
+        <section id="simple-example">
+            <div class="eyebrow">02 — At a glance</div>
+            <h1>Simple Example</h1>
+            <p class="lede">A short menu template: loop over a list, echo a couple of fields for each item.</p>
+
+            <p class="ex-given"><span class="tag">Given</span> <code>items</code> is a list of <code>{ name, price }</code> objects.</p>
+
+            <div class="code-card reveal">
+                <div class="pane pane-tpl">
+                    <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                    <pre><code>&lt;ul&gt;
+<span class="t">&lt;{</span> <span class="k">for</span> item <span class="k">in</span> items <span class="t">}&gt;</span>
+&lt;li&gt;<span class="e">{{</span> item.name <span class="e">}}</span> — $<span class="e">{{</span> item.price <span class="e">}}</span>&lt;/li&gt;
+<span class="t">&lt;{</span> <span class="k">end for</span> <span class="t">}&gt;</span>
+&lt;/ul&gt;</code></pre>
+                </div>
+                <div class="pane pane-out">
+                    <div class="pane-head"><span class="arrow">→</span> Output</div>
+                    <div class="out-body">
+                        <ul class="out-list">
+                            <li>Espresso — $3.5</li>
+                            <li>Latte — $4.25</li>
+                            <li>Cold Brew — $4</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ SYNTAX ============ -->
+        <section id="syntax">
+            <div class="eyebrow">03 — Reference</div>
+            <h1>Syntax</h1>
+            <p class="lede">Everything the language supports, grouped by what it does: printing values, assigning variables, branching, and looping.</p>
+
+            <!-- Echo Statement -->
+            <div class="block" id="echo-statement">
+                <h2>Echo Statement</h2>
+                <p><code>&lt;{ echo expression }&gt;</code> evaluates <code>expression</code> and prints the result in place.</p>
+
+                <div class="code-card reveal">
+                    <div class="pane pane-tpl">
+                        <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                        <pre><code><span class="t">&lt;{</span> <span class="k">echo</span> user.name <span class="t">}&gt;</span></code></pre>
+                    </div>
+                    <div class="pane pane-out">
+                        <div class="pane-head"><span class="arrow">→</span> Output</div>
+                        <div class="out-body"><p>Hero</p></div>
+                    </div>
+                </div>
+
+                <!-- Procedures & Calculations -->
+                <div class="block-sub" id="procedures-calculations">
+                    <h3>Procedures &amp; Calculations</h3>
+                    <p>An expression can combine values with arithmetic, comparison, and logical operators.</p>
+
+                    <table class="op-table">
+                        <thead>
+                            <tr><th>Category</th><th>Operators</th><th>Example</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Arithmetic</td><td><code>+</code> <code>-</code> <code>*</code> <code>/</code></td><td><code>price * quantity</code></td></tr>
+                            <tr><td>Comparison</td><td><code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code> <code>==</code> <code>!=</code></td><td><code>age &gt;= 18</code></td></tr>
+                            <tr><td>Logical</td><td><code>and</code> <code>or</code></td><td><code>isAdmin and isActive</code></td></tr>
+                        </tbody>
+                    </table>
+
+                    <p class="ex-given"><span class="tag">Given</span> <code>price = 5.5</code>, <code>quantity = 5</code>, <code>age = 21</code>, <code>hasLicense = true</code>.</p>
+
+                    <div class="code-card reveal">
+                        <div class="pane pane-tpl">
+                            <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                            <pre><code>&lt;p&gt;Total: $<span class="e">{{</span> price <span class="o">*</span> quantity <span class="e">}}</span>&lt;/p&gt;
+<span class="t">&lt;{</span> <span class="k">if</span> age <span class="o">&gt;=</span> <span class="n">18</span> <span class="k">and</span> hasLicense <span class="t">}&gt;</span>
+&lt;p&gt;Eligible to drive&lt;/p&gt;
+<span class="t">&lt;{</span> <span class="k">end if</span> <span class="t">}&gt;</span></code></pre>
+                        </div>
+                        <div class="pane pane-out">
+                            <div class="pane-head"><span class="arrow">→</span> Output</div>
+                            <div class="out-body">
+                                <p>Total: $27.5</p>
+                                <p>Eligible to drive</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fallback (OR) -->
+                <div class="block-sub" id="fallback-or">
+                    <h3>Fallback (OR)</h3>
+                    <p>The <code>or</code> operator works like Python's short-circuit evaluation: if the left-hand side is <strong>null</strong> (or missing), the expression resolves to the right-hand side. This is the idiomatic way to provide default values.</p>
+
+                    <p class="ex-given"><span class="tag">Given</span> <code>nickname</code> may be null, <code>username = "hero"</code>.</p>
+
+                    <div class="code-card reveal">
+                        <div class="pane pane-tpl">
+                            <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                            <pre><code>&lt;p&gt;Hello, <span class="e">{{</span> nickname <span class="k">or</span> <span class="s">"guest"</span> <span class="e">}}</span>&lt;/p&gt;
+&lt;p&gt;Display: <span class="e">{{</span> username <span class="k">or</span> <span class="s">"Anonymous"</span> <span class="e">}}</span>&lt;/p&gt;</code></pre>
+                        </div>
+                        <div class="pane pane-out">
+                            <div class="pane-head"><span class="arrow">→</span> Output</div>
+                            <div class="out-body out-stack">
+                                <div>
+                                    <div class="out-state-label">nickname is null</div>
+                                    <p>Hello, guest</p>
+                                </div>
+                                <div>
+                                    <div class="out-state-label">username = "hero" (not null)</div>
+                                    <p>Display: hero</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="callout"><strong>How it works —</strong> <code>x or "fallback"</code> returns <code>x</code> if <code>x</code> has a value; otherwise it returns <code>"fallback"</code>. This is especially useful for optional fields, labels, and placeholder text.</div>
+                </div>
+
+                <!-- Chaining -->
+                <div class="block-sub" id="chaining">
+                    <h3>Chaining</h3>
+                    <p>Use <code>?.</code> between links in a path to access nested values safely. If a link in the chain is missing, <strong>it returns <code>null</code></strong> instead of raising an error. You can combine this with <code>or</code> to provide a fallback value.</p>
+
+                    <div class="code-card reveal">
+                        <div class="pane pane-tpl">
+                            <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                            <pre><code>&lt;p&gt;City: <span class="e">{{</span> user<span class="p">?.</span>address<span class="p">?.</span>city <span class="e">}}</span>&lt;/p&gt;
+&lt;p&gt;City: <span class="e">{{</span> user<span class="p">?.</span>address<span class="p">?.</span>city <span class="k">or</span> <span class="s">"Not provided"</span> <span class="e">}}</span>&lt;/p&gt;</code></pre>
+                        </div>
+                        <div class="pane pane-out">
+                            <div class="pane-head"><span class="arrow">→</span> Output</div>
+                            <div class="out-body out-stack">
+                                <div>
+                                    <div class="out-state-label">user.address exists → city = "Cairo"</div>
+                                    <p>City: Cairo</p>
+                                    <p>City: Cairo</p>
+                                </div>
+                                <div>
+                                    <div class="out-state-label">user.address is missing → resolves to null</div>
+                                    <p>City:&nbsp;</p>
+                                    <p>City: Not provided</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="callout"><strong>Why it matters —</strong> without <code>?.</code>, reading a property off a missing value stops the whole expression. Chaining lets you write one line instead of nesting an <code>if</code> around every optional field. Pair it with <code>or</code> for clean fallback values.</div>
+                </div>
+
+                <!-- Simpler Version -->
+                <div class="block-sub" id="simpler-version">
+                    <h3>Simpler Version</h3>
+                    <p><code>{{ expression }}</code> is shorthand for <code>&lt;{ echo expression }&gt;</code>. Same result, less to type — this is the form you'll reach for almost everywhere.</p>
+
+                    <div class="equiv">
+                        <span class="side"><span class="t">&lt;{</span> <span class="k">echo</span> total <span class="t">}&gt;</span></span>
+                        <span class="eq">is the same as</span>
+                        <span class="side"><span class="e">{{</span> total <span class="e">}}</span></span>
+                    </div>
+                </div>
+
+                <!-- Functions -->
+                <div class="block-sub" id="functions">
+                    <h3>Functions</h3>
+                    <p>Expressions can call a small set of built-in functions on a value, using dot syntax — <code>value.function()</code>.</p>
+
+                    <div class="block-sub deep" id="length">
+                        <h4>Length</h4>
+                        <p><code>variable.length()</code> returns the number of items in a list, or the number of characters in a string.</p>
+
+                        <p class="ex-given"><span class="tag">Given</span> <code>items</code> has 3 entries, <code>username = "hero"</code>.</p>
+
+                        <div class="code-card reveal">
+                            <div class="pane pane-tpl">
+                                <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                                <pre><code>&lt;p&gt;You have <span class="e">{{</span> items<span class="p">.</span><span class="o">length</span>() <span class="e">}}</span> items in your cart&lt;/p&gt;
+&lt;p&gt;Username "<span class="e">{{</span> username <span class="e">}}</span>" is <span class="e">{{</span> username<span class="p">.</span><span class="o">length</span>() <span class="e">}}</span> characters long&lt;/p&gt;</code></pre>
+                            </div>
+                            <div class="pane pane-out">
+                                <div class="pane-head"><span class="arrow">→</span> Output</div>
+                                <div class="out-body">
+                                    <p>You have 3 items in your cart</p>
+                                    <p>Username "hero" is 4 characters long</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assign Statement -->
+            <div class="block" id="assign-statement">
+                <h2>Assign Statement</h2>
+                <p><code>&lt;{ let variable = expression }&gt;</code> evaluates the expression and stores it in a named variable. You can then use <code>variable</code> anywhere later in the template — inside echoes, conditions, or further assignments.</p>
+
+                <p class="ex-given"><span class="tag">Given</span> <code>price = 49.99</code>, <code>quantity = 3</code>, <code>status</code> may be null.</p>
+
+                <div class="code-card reveal">
+                    <div class="pane pane-tpl">
+                        <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                        <pre><code><span class="t">&lt;{</span> <span class="a">let</span> subtotal <span class="o">=</span> price <span class="o">*</span> quantity <span class="t">}&gt;</span>
+<span class="t">&lt;{</span> <span class="a">let</span> shipping <span class="o">=</span> <span class="n">5</span> <span class="t">}&gt;</span>
+<span class="t">&lt;{</span> <span class="a">let</span> total <span class="o">=</span> subtotal <span class="o">+</span> shipping <span class="t">}&gt;</span>
+<span class="t">&lt;{</span> <span class="a">let</span> label <span class="o">=</span> status <span class="k">or</span> <span class="s">"Active"</span> <span class="t">}&gt;</span>
+
+&lt;p&gt;Subtotal: $<span class="e">{{</span> subtotal <span class="e">}}</span>&lt;/p&gt;
+&lt;p&gt;Shipping: $<span class="e">{{</span> shipping <span class="e">}}</span>&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Total: $<span class="e">{{</span> total <span class="e">}}</span>&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Status: <span class="e">{{</span> label <span class="e">}}</span>&lt;/p&gt;</code></pre>
+                    </div>
+                    <div class="pane pane-out">
+                        <div class="pane-head"><span class="arrow">→</span> Output</div>
+                        <div class="out-body">
+                            <p>Subtotal: $149.97</p>
+                            <p>Shipping: $5</p>
+                            <p><strong>Total: $154.97</strong></p>
+                            <p>Status: Active</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="callout"><strong>Tip —</strong> Variables are scoped to the template. Assign once and reuse anywhere below the assignment. This keeps your templates DRY and makes complex calculations readable.</div>
+            </div>
+
+            <!-- If Condition -->
+            <div class="block" id="if-condition">
+                <h2>If Condition</h2>
+                <p>Branch with <code>&lt;{ if expression }&gt;</code>, optional <code>&lt;{ else if expression }&gt;</code> branches, an optional <code>&lt;{ else }&gt;</code>, and a closing <code>&lt;{ end if }&gt;</code>.</p>
+
+                <p class="ex-given"><span class="tag">Given</span> <code>stock = 3</code>.</p>
+
+                <div class="code-card reveal">
+                    <div class="pane pane-tpl">
+                        <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                        <pre><code><span class="t">&lt;{</span> <span class="k">if</span> stock <span class="o">==</span> <span class="n">0</span> <span class="t">}&gt;</span>
+&lt;span&gt;Out of stock&lt;/span&gt;
+<span class="t">&lt;{</span> <span class="k">else if</span> stock <span class="o">&lt;</span> <span class="n">5</span> <span class="t">}&gt;</span>
+&lt;span&gt;Only <span class="e">{{</span> stock <span class="e">}}</span> left&lt;/span&gt;
+<span class="t">&lt;{</span> <span class="k">else</span> <span class="t">}&gt;</span>
+&lt;span&gt;In stock&lt;/span&gt;
+<span class="t">&lt;{</span> <span class="k">end if</span> <span class="t">}&gt;</span></code></pre>
+                    </div>
+                    <div class="pane pane-out">
+                        <div class="pane-head"><span class="arrow">→</span> Output</div>
+                        <div class="out-body">
+                            <span class="out-badge low">Only 3 left</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- For Condition -->
+            <div class="block" id="for-condition">
+                <h2>For Condition</h2>
+                <p>Loop over a list with <code>&lt;{ for item in items }&gt;</code> … <code>&lt;{ end for }&gt;</code>. Everything between the two tags repeats once per item, with <code>item</code> scoped to that iteration.</p>
+
+                <p class="ex-given"><span class="tag">Given</span> <code>post.tags = ["design", "frontend", "css"]</code>.</p>
+
+                <div class="code-card reveal">
+                    <div class="pane pane-tpl">
+                        <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                        <pre><code>&lt;ul&gt;
+<span class="t">&lt;{</span> <span class="k">for</span> tag <span class="k">in</span> post.tags <span class="t">}&gt;</span>
+&lt;li&gt;#<span class="e">{{</span> tag <span class="e">}}</span>&lt;/li&gt;
+<span class="t">&lt;{</span> <span class="k">end for</span> <span class="t">}&gt;</span>
+&lt;/ul&gt;</code></pre>
+                    </div>
+                    <div class="pane pane-out">
+                        <div class="pane-head"><span class="arrow">→</span> Output</div>
+                        <div class="out-body">
+                            <ul class="out-list">
+                                <li>#design</li>
+                                <li>#frontend</li>
+                                <li>#css</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loop Variable -->
+                <div class="block-sub" id="loop-variable">
+                    <h3>Loop Variable</h3>
+                    <p>Add a name before the item — <code>&lt;{ for loop, item in items }&gt;</code> — to get a <code>loop</code> object alongside it. <code>loop.index</code> holds the current position.</p>
+
+                    <p class="ex-given"><span class="tag">Given</span> <code>instructions</code> is a list of 3 strings.</p>
+
+                    <div class="code-card reveal">
+                        <div class="pane pane-tpl">
+                            <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                            <pre><code>&lt;ol&gt;
+<span class="t">&lt;{</span> <span class="k">for</span> loop, step <span class="k">in</span> instructions <span class="t">}&gt;</span>
+&lt;li&gt;Step <span class="e">{{</span> loop.index <span class="e">}}</span>: <span class="e">{{</span> step <span class="e">}}</span>&lt;/li&gt;
+<span class="t">&lt;{</span> <span class="k">end for</span> <span class="t">}&gt;</span>
+&lt;/ol&gt;</code></pre>
+                        </div>
+                        <div class="pane pane-out">
+                            <div class="pane-head"><span class="arrow">→</span> Output</div>
+                            <div class="out-body">
+                                <ol class="out-ol">
+                                    <li>Step 1: Preheat the oven</li>
+                                    <li>Step 2: Mix the ingredients</li>
+                                    <li>Step 3: Bake for 20 minutes</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="callout"><strong>Note —</strong> <code>loop.index</code> starts at 1, so it prints ready to read — no need to add 1 to it yourself.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ EXAMPLES ============ -->
+        <section id="examples">
+            <div class="eyebrow">04 — Putting it together</div>
+            <h1>Examples</h1>
+            <p class="lede">Three complete templates that combine echoing, assigning, branching, chaining, and loops the way you'd actually use them.</p>
+
+            <div class="block" style="padding-top:8px;">
+                <h3>Product grid with stock state</h3>
+                <p class="ex-given"><span class="tag">Given</span> <code>products</code> is a list of <code>{ name, price, stock }</code>.</p>
+                <div class="code-card reveal">
+                    <div class="pane pane-tpl">
+                        <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                        <pre><code>&lt;div class="grid"&gt;
+<span class="t">&lt;{</span> <span class="k">for</span> product <span class="k">in</span> products <span class="t">}&gt;</span>
+&lt;div class="card"&gt;
+&lt;h3&gt;<span class="e">{{</span> product.name <span class="e">}}</span>&lt;/h3&gt;
+&lt;p&gt;$<span class="e">{{</span> product.price <span class="e">}}</span>&lt;/p&gt;
+<span class="t">&lt;{</span> <span class="k">if</span> product.stock <span class="o">&gt;</span> <span class="n">0</span> <span class="t">}&gt;</span>
+&lt;button&gt;Add to cart&lt;/button&gt;
+<span class="t">&lt;{</span> <span class="k">else</span> <span class="t">}&gt;</span>
+&lt;button disabled&gt;Sold out&lt;/button&gt;
+<span class="t">&lt;{</span> <span class="k">end if</span> <span class="t">}&gt;</span>
+&lt;/div&gt;
+<span class="t">&lt;{</span> <span class="k">end for</span> <span class="t">}&gt;</span>
+&lt;/div&gt;</code></pre>
+                    </div>
+                    <div class="pane pane-out">
+                        <div class="pane-head"><span class="arrow">→</span> Output</div>
+                        <div class="out-body">
+                            <div class="out-card-row">
+                                <div class="out-card">
+                                    <h4>Espresso</h4>
+                                    <div class="price">$3.5</div>
+                                    <span class="out-btn">Add to cart</span>
+                                </div>
+                                <div class="out-card">
+                                    <h4>Cold Brew</h4>
+                                    <div class="price">$4</div>
+                                    <span class="out-btn" disabled>Sold out</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="block">
+                <h3>Greeting card with a guest fallback</h3>
+                <p class="ex-given"><span class="tag">Given</span> <code>user</code> may or may not be signed in.</p>
+                <div class="code-card reveal">
+                    <div class="pane pane-tpl">
+                        <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                        <pre><code>&lt;div class="greeting"&gt;
+<span class="t">&lt;{</span> <span class="k">if</span> user<span class="p">?.</span>name <span class="t">}&gt;</span>
+&lt;h2&gt;Welcome back, <span class="e">{{</span> user.name <span class="e">}}</span>&lt;/h2&gt;
+<span class="t">&lt;{</span> <span class="k">else</span> <span class="t">}&gt;</span>
+&lt;h2&gt;Welcome, guest&lt;/h2&gt;
+<span class="t">&lt;{</span> <span class="k">end if</span> <span class="t">}&gt;</span>
+&lt;/div&gt;</code></pre>
+                    </div>
+                    <div class="pane pane-out">
+                        <div class="pane-head"><span class="arrow">→</span> Output</div>
+                        <div class="out-body out-stack">
+                            <div>
+                                <div class="out-state-label">Signed in</div>
+                                <p style="font-family:'Space Grotesk',sans-serif;font-weight:600;">Welcome back, Hero</p>
+                            </div>
+                            <div>
+                                <div class="out-state-label">Signed out</div>
+                                <p style="font-family:'Space Grotesk',sans-serif;font-weight:600;">Welcome, guest</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="block">
+                <h3>Pagination with the current page highlighted</h3>
+                <p class="ex-given"><span class="tag">Given</span> <code>pages = [1,2,3,4,5]</code>, <code>current = 3</code>.</p>
+                <div class="code-card reveal">
+                    <div class="pane pane-tpl">
+                        <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                        <pre><code>&lt;nav&gt;
+<span class="t">&lt;{</span> <span class="k">for</span> loop, page <span class="k">in</span> pages <span class="t">}&gt;</span>
+<span class="t">&lt;{</span> <span class="k">if</span> loop.index <span class="o">==</span> current <span class="t">}&gt;</span>
+&lt;span class="active"&gt;<span class="e">{{</span> page <span class="e">}}</span>&lt;/span&gt;
+<span class="t">&lt;{</span> <span class="k">else</span> <span class="t">}&gt;</span>
+&lt;a href="?p=<span class="e">{{</span> loop.index <span class="e">}}</span>"&gt;<span class="e">{{</span> page <span class="e">}}</span>&lt;/a&gt;
+<span class="t">&lt;{</span> <span class="k">end if</span> <span class="t">}&gt;</span>
+<span class="t">&lt;{</span> <span class="k">end for</span> <span class="t">}&gt;</span>
+&lt;/nav&gt;</code></pre>
+                    </div>
+                    <div class="pane pane-out">
+                        <div class="pane-head"><span class="arrow">→</span> Output</div>
+                        <div class="out-body">
+                            <div class="out-pillrow">
+                                <span class="out-pill">1</span>
+                                <span class="out-pill">2</span>
+                                <span class="out-pill active">3</span>
+                                <span class="out-pill">4</span>
+                                <span class="out-pill">5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ CONTEXT ============ -->
+        <section id="context">
+            <div class="eyebrow">05 — Data in</div>
+            <h1>Context</h1>
+            <p class="lede">When a template is rendered, it receives a structured dictionary — the <strong>context</strong>. Every variable you reference in a template (<code>user.name</code>, <code>products</code>, <code>currency.symbol</code>) comes from this object. Here is a real example of the context shape passed to a checkout template.</p>
+
+            <p style="margin-bottom:6px;">The tree below shows every top-level key, its type, and how nested objects and lists are organized. Use it as a reference for what's available when you write templates.</p>
+
+            <div class="ctx-wrap reveal">
+                <div class="ctx-head">📦 Context Dictionary</div>
+                <div class="ctx-body"><code><span class="ck">context</span> <span class="cp">=</span> {
+<span class="cm">  // ── Scalar values ──</span>
+<span class="ck">  "almtgerprotectvalue"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+<span class="ck">  "baseURL"</span><span class="cp">:</span> <span class="cs">"&lt;string — checkout URL&gt;"</span><span class="cp">,</span>
+<span class="ck">  "checkout_slug_id"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+<span class="ck">  "error_message"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+<span class="ck">  "show_coupon"</span><span class="cp">:</span> <span class="cb">true</span><span class="cp">,</span>
+<span class="ck">  "checkout_guest_token_api_value"</span><span class="cp">:</span> <span class="cs">"&lt;string — API token&gt;"</span><span class="cp">,</span>
+
+<span class="cm">  // ── Merchant profile ──</span>
+<span class="ck">  "merchant_profile"</span><span class="cp">:</span> {
+    <span class="ck">"business_name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+    <span class="ck">"business_description"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+    <span class="ck">"logo"</span><span class="cp">:</span> {
+      <span class="ck">"url"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> <span class="ct">|</span> <span class="cr">null</span>
+    }
+  }<span class="cp">,</span>
+
+<span class="cm">  // ── Currency ──</span>
+<span class="ck">  "currency"</span><span class="cp">:</span> {
+    <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span>
+    <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+    <span class="ck">"symbol"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+    <span class="ck">"abbreviated_sign"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span>
+  }<span class="cp">,</span>
+
+<span class="cm">  // ── Countries → Governorates → Cities ──</span>
+<span class="ck">  "countries"</span><span class="cp">:</span> [
+    {
+      <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span>
+      <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+      <span class="ck">"governorates"</span><span class="cp">:</span> [
+        {
+          <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span>
+          <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+          <span class="ck">"cities"</span><span class="cp">:</span> [
+            { <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span> <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> }
+          ]
+        }
+      ]
+    }
+  ]<span class="cp">,</span>
+
+<span class="cm">  // ── Languages ──</span>
+<span class="ck">  "languages"</span><span class="cp">:</span> [
+    {
+      <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+      <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+      <span class="ck">"display_name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+      <span class="ck">"direction"</span><span class="cp">:</span> <span class="cs">"&lt;string — 'ltr' | 'rtl'&gt;"</span><span class="cp">,</span>
+      <span class="ck">"is_default"</span><span class="cp">:</span> <span class="cb">true</span> <span class="ct">|</span> <span class="cb">false</span>
+    }
+  ]<span class="cp">,</span>
+
+<span class="cm">  // ── Customer custom attributes ──</span>
+<span class="ck">  "customers"</span><span class="cp">:</span> {
+    <span class="ck">"custom_attributes"</span><span class="cp">:</span> [
+      {
+        <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span>
+        <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+        <span class="ck">"internal_name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+        <span class="ck">"type"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+        <span class="ck">"initial_value"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+        <span class="ck">"options"</span><span class="cp">:</span> <span class="cs">"&lt;string | null&gt;"</span><span class="cp">,</span>
+        <span class="ck">"option_type"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+        <span class="ck">"is_required"</span><span class="cp">:</span> <span class="cb">true</span> <span class="ct">|</span> <span class="cb">false</span><span class="cp">,</span>
+        <span class="ck">"min_value"</span><span class="cp">:</span> <span class="cn">0</span><span class="cp">,</span>
+        <span class="ck">"max_value"</span><span class="cp">:</span> <span class="cn">100</span><span class="cp">,</span>
+        <span class="ck">"min_length"</span><span class="cp">:</span> <span class="cn">0</span><span class="cp">,</span>
+        <span class="ck">"max_length"</span><span class="cp">:</span> <span class="cn">255</span><span class="cp">,</span>
+        <span class="ck">"allow_delete"</span><span class="cp">:</span> <span class="cb">true</span> <span class="ct">|</span> <span class="cb">false</span><span class="cp">,</span>
+        <span class="ck">"display"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span>
+      }
+    ]
+  }<span class="cp">,</span>
+
+<span class="cm">  // ── Address custom attributes ──</span>
+<span class="ck">  "address"</span><span class="cp">:</span> {
+    <span class="ck">"custom_attributes"</span><span class="cp">:</span> [
+      {
+        <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span>
+        <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+        <span class="ck">"internal_name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+        <span class="ck">"type"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+        <span class="cm">/* … same shape as customer custom_attributes */</span>
+      }
+    ]
+  }<span class="cp">,</span>
+
+<span class="cm">  // ── Checkout products ──</span>
+<span class="ck">  "checkout_products"</span><span class="cp">:</span> [
+    {
+      <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span>
+      <span class="ck">"product"</span><span class="cp">:</span> {
+        <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span>
+        <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+        <span class="ck">"summary"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+        <span class="ck">"description"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+        <span class="ck">"sales_price"</span><span class="cp">:</span> <span class="cn">49.99</span><span class="cp">,</span>
+        <span class="ck">"price"</span><span class="cp">:</span> <span class="cn">39.99</span><span class="cp">,</span>
+        <span class="ck">"main_image"</span><span class="cp">:</span> {
+          <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span>
+          <span class="ck">"url"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span>
+          <span class="ck">"alt"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span>
+        }<span class="cp">,</span>
+        <span class="ck">"images"</span><span class="cp">:</span> [
+          { <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span> <span class="ck">"url"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span> <span class="ck">"alt"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> }
+        ]<span class="cp">,</span>
+        <span class="ck">"custom_attributes"</span><span class="cp">:</span> [
+          <span class="cm">/* … same shape as customer custom_attributes */</span>
+        ]<span class="cp">,</span>
+        <span class="ck">"product_specifications"</span><span class="cp">:</span> [
+          { <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span> <span class="ck">"value"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> }
+        ]
+      }
+    }
+  ]<span class="cp">,</span>
+
+<span class="cm">  // ── Social links ──</span>
+<span class="ck">  "social_links"</span><span class="cp">:</span> [
+    { <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span> <span class="ck">"value"</span><span class="cp">:</span> <span class="cs">"&lt;string — URL&gt;"</span> }
+  ]<span class="cp">,</span>
+
+<span class="cm">  // ── Promotion banners ──</span>
+<span class="ck">  "promotion_banners"</span><span class="cp">:</span> [
+    { <span class="ck">"color"</span><span class="cp">:</span> <span class="cs">"&lt;string — hex&gt;"</span><span class="cp">,</span> <span class="ck">"text"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> }
+  ]<span class="cp">,</span>
+
+<span class="cm">  // ── Payment methods ──</span>
+<span class="ck">  "payment_methods"</span><span class="cp">:</span> [
+    {
+      <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+      <span class="ck">"display_name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+      <span class="ck">"description"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+      <span class="ck">"is_active"</span><span class="cp">:</span> <span class="cb">true</span> <span class="ct">|</span> <span class="cb">false</span><span class="cp">,</span>
+      <span class="ck">"is_default"</span><span class="cp">:</span> <span class="cb">true</span> <span class="ct">|</span> <span class="cb">false</span><span class="cp">,</span>
+      <span class="ck">"sort_order"</span><span class="cp">:</span> <span class="cn">1</span>
+    }
+  ]
+}</code></div>
+            </div>
+
+            <div class="callout"><strong>How to read this —</strong> Every key shown above is available as a top-level variable in your template. For example, <code>{{ merchant_profile.business_name }}</code> prints the merchant's name; <code>&lt;{ for product in checkout_products }&gt;</code> loops over every product in the cart. Fields marked <code>| null</code> can be missing — use <code>?.</code> chaining or <code>or</code> fallback to handle them safely.</div>
+        </section>
+
+        <footer>
+            Almtger Template syntax reference — every code sample on this page uses the exact grammar described above.
+        </footer>
+    </main>
+</div>
+
+<script>
+(function(){
+    // Mobile nav toggle
+    var toggle = document.querySelector('.nav-toggle');
+    var sidebar = document.querySelector('.sidebar');
+    var overlay = document.querySelector('.nav-overlay');
+
+    function closeNav(){
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+        if(toggle) toggle.setAttribute('aria-expanded','false');
+    }
+    if(toggle){
+        toggle.addEventListener('click', function(){
+            var open = sidebar.classList.toggle('open');
+            overlay.classList.toggle('show', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+    }
+    overlay.addEventListener('click', closeNav);
+    sidebar.querySelectorAll('a').forEach(function(a){
+        a.addEventListener('click', closeNav);
+    });
+
+    // Scrollspy
+    var navLinks = document.querySelectorAll('.toc a');
+    var map = new Map();
+    navLinks.forEach(function(a){ map.set(a.getAttribute('href').slice(1), a); });
+
+    var targets = [];
+    map.forEach(function(link, id){
+        var el = document.getElementById(id);
+        if(el) targets.push(el);
+    });
+
+    if('IntersectionObserver' in window){
+        var spy = new IntersectionObserver(function(entries){
+            entries.forEach(function(entry){
+                var link = map.get(entry.target.id);
+                if(!link) return;
+                if(entry.isIntersecting){
+                    navLinks.forEach(function(l){ l.classList.remove('active'); });
+                    link.classList.add('active');
+                }
+            });
+        }, {rootMargin: '-15% 0px -70% 0px', threshold: 0});
+        targets.forEach(function(t){ spy.observe(t); });
+
+        // Reveal on scroll
+        var reveals = document.querySelectorAll('.reveal');
+        var ro = new IntersectionObserver(function(entries){
+            entries.forEach(function(entry){
+                if(entry.isIntersecting){
+                    entry.target.classList.add('in-view');
+                    ro.unobserve(entry.target);
+                }
+            });
+        }, {threshold: 0.12});
+        reveals.forEach(function(el){ ro.observe(el); });
+    } else {
+        document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in-view'); });
+    }
+})();
+</script>
+</body>
+</html>
