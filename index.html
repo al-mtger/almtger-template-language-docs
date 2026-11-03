@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Almtger Template Language Syntax — Documentation</title>
-<meta name="description" content="Syntax reference for the &lt;{ }&gt; almtger template language: echo statements, assign, conditionals, loops, chaining, fallback operators, built-in functions and context structure.">
+<meta name="description" content="Syntax reference for the &lt;{ }&gt; almtger template language: echo statements, assign, conditionals, loops, lists, dictionaries, membership, chaining, fallback operators, built-in functions and context structure.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -535,6 +535,8 @@ footer{
                                 <a href="#echo-statement">Echo Statement</a>
                                 <ul>
                                     <li class="lvl3"><a href="#procedures-calculations">Procedures &amp; Calculations</a></li>
+                                    <li class="lvl3"><a href="#membership">Membership</a></li>
+                                    <li class="lvl3"><a href="#lists-dictionaries">Lists &amp; Dictionaries</a></li>
                                     <li class="lvl3"><a href="#fallback-or">Fallback (OR)</a></li>
                                     <li class="lvl3"><a href="#chaining">Chaining</a></li>
                                     <li class="lvl3"><a href="#simpler-version">Simpler Version</a></li>
@@ -641,12 +643,12 @@ footer{
         <section id="syntax">
             <div class="eyebrow">03 — Reference</div>
             <h1>Syntax</h1>
-            <p class="lede">Everything the language supports, grouped by what it does: printing values, assigning variables, branching, and looping.</p>
+            <p class="lede">Everything the language supports, grouped by what it does: printing values, assigning variables, branching, looping, and including other templates.</p>
 
             <!-- Echo Statement -->
             <div class="block" id="echo-statement">
                 <h2>Echo Statement</h2>
-                <p><code>&lt;{ echo expression }&gt;</code> evaluates <code>expression</code> and prints the result in place.</p>
+                <p><code>&lt;{ echo expression }&gt;</code> evaluates <code>expression</code> and prints the result in place. Echo can print numbers, strings, booleans, lists, and dictionaries; a null value prints as an empty string.</p>
 
                 <div class="code-card reveal">
                     <div class="pane pane-tpl">
@@ -662,18 +664,23 @@ footer{
                 <!-- Procedures & Calculations -->
                 <div class="block-sub" id="procedures-calculations">
                     <h3>Procedures &amp; Calculations</h3>
-                    <p>An expression can combine values with arithmetic, comparison, and logical operators.</p>
+                    <p>An expression can combine values with arithmetic, concatenation, comparison, equality, logical, and membership operators.</p>
 
                     <table class="op-table">
                         <thead>
                             <tr><th>Category</th><th>Operators</th><th>Example</th></tr>
                         </thead>
                         <tbody>
-                            <tr><td>Arithmetic</td><td><code>+</code> <code>-</code> <code>*</code> <code>/</code></td><td><code>price * quantity</code></td></tr>
-                            <tr><td>Comparison</td><td><code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code> <code>==</code> <code>!=</code></td><td><code>age &gt;= 18</code></td></tr>
+                            <tr><td>Arithmetic</td><td><code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>%</code></td><td><code>price * quantity</code></td></tr>
+                            <tr><td>Concatenation</td><td><code>+</code></td><td><code>"Hi " + name</code></td></tr>
+                            <tr><td>Comparison</td><td><code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code></td><td><code>age &gt;= 18</code></td></tr>
+                            <tr><td>Equality</td><td><code>==</code> <code>!=</code></td><td><code>status == "active"</code></td></tr>
                             <tr><td>Logical</td><td><code>and</code> <code>or</code></td><td><code>isAdmin and isActive</code></td></tr>
+                            <tr><td>Membership</td><td><code>in</code> <code>not in</code></td><td><code>"css" in tags</code></td></tr>
                         </tbody>
                     </table>
+
+                    <div class="callout"><strong>Precedence —</strong> from highest to lowest: <code>* / %</code>, <code>+ -</code>, <code>&lt; &lt;= &gt; &gt;=</code>, <code>== !=</code>, <code>in</code> / <code>not in</code>, <code>and</code>, <code>or</code>. Arithmetic operators only accept numbers; <code>+</code> is the exception that also joins two strings, merges two lists, or merges two dictionaries. <code>==</code> and <code>!=</code> compare both type and value. <code>and</code> and <code>or</code> short-circuit.</div>
 
                     <p class="ex-given"><span class="tag">Given</span> <code>price = 5.5</code>, <code>quantity = 5</code>, <code>age = 21</code>, <code>hasLicense = true</code>.</p>
 
@@ -681,6 +688,7 @@ footer{
                         <div class="pane pane-tpl">
                             <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
                             <pre><code>&lt;p&gt;Total: $<span class="e">{{</span> price <span class="o">*</span> quantity <span class="e">}}</span>&lt;/p&gt;
+&lt;p&gt;Remainder: <span class="e">{{</span> quantity <span class="o">%</span> <span class="n">2</span> <span class="e">}}</span>&lt;/p&gt;
 <span class="t">&lt;{</span> <span class="k">if</span> age <span class="o">&gt;=</span> <span class="n">18</span> <span class="k">and</span> hasLicense <span class="t">}&gt;</span>
 &lt;p&gt;Eligible to drive&lt;/p&gt;
 <span class="t">&lt;{</span> <span class="k">end if</span> <span class="t">}&gt;</span></code></pre>
@@ -689,16 +697,79 @@ footer{
                             <div class="pane-head"><span class="arrow">→</span> Output</div>
                             <div class="out-body">
                                 <p>Total: $27.5</p>
+                                <p>Remainder: 1</p>
                                 <p>Eligible to drive</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Membership -->
+                <div class="block-sub" id="membership">
+                    <h3>Membership</h3>
+                    <p><code>in</code> checks whether a value exists in a list, or whether a key exists in a dictionary. <code>not in</code> is the inverse. Both return a boolean.</p>
+
+                    <p class="ex-given"><span class="tag">Given</span> <code>tags = ["design", "frontend", "css"]</code>, <code>roles = { "admin": true, "editor": false }</code>.</p>
+
+                    <div class="code-card reveal">
+                        <div class="pane pane-tpl">
+                            <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                            <pre><code>&lt;p&gt;Has CSS: <span class="e">{{</span> <span class="s">"css"</span> <span class="k">in</span> tags <span class="e">}}</span>&lt;/p&gt;
+&lt;p&gt;No backend: <span class="e">{{</span> <span class="s">"backend"</span> <span class="k">not in</span> tags <span class="e">}}</span>&lt;/p&gt;
+&lt;p&gt;Admin role: <span class="e">{{</span> <span class="s">"admin"</span> <span class="k">in</span> roles <span class="e">}}</span>&lt;/p&gt;</code></pre>
+                        </div>
+                        <div class="pane pane-out">
+                            <div class="pane-head"><span class="arrow">→</span> Output</div>
+                            <div class="out-body">
+                                <p>Has CSS: true</p>
+                                <p>No backend: true</p>
+                                <p>Admin role: true</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="callout"><strong>Note —</strong> for a dictionary, <code>in</code> checks keys, not values. For a list, it checks the items themselves.</div>
+                </div>
+
+                <!-- Lists & Dictionaries -->
+                <div class="block-sub" id="lists-dictionaries">
+                    <h3>Lists &amp; Dictionaries</h3>
+                    <p>Literal values are numbers (<code>5</code>, <code>3.14</code>), strings (<code>"text"</code>), booleans (<code>true</code>, <code>false</code>), lists (<code>[ … ]</code>), and dictionaries (<code>{ key: value, … }</code>). List items and dictionary values can be any expression; dictionary keys must be a string, number, or boolean.</p>
+
+                    <div class="code-card reveal">
+                        <div class="pane pane-tpl">
+                            <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                            <pre><code><span class="t">&lt;{</span> <span class="a">let</span> tags <span class="o">=</span> [<span class="s">"design"</span>, <span class="s">"frontend"</span>, <span class="s">"css"</span>] <span class="t">}&gt;</span>
+<span class="t">&lt;{</span> <span class="a">let</span> theme <span class="o">=</span> { <span class="s">"name"</span><span class="p">:</span> <span class="s">"Midnight"</span>, <span class="s">"dark"</span><span class="p">:</span> <span class="k">true</span>, <span class="s">"colors"</span><span class="p">:</span> [<span class="s">"#111"</span>, <span class="s">"#eee"</span>] } <span class="t">}&gt;</span>
+
+&lt;p&gt;Tags: <span class="e">{{</span> tags <span class="e">}}</span>&lt;/p&gt;
+&lt;p&gt;Tag count: <span class="e">{{</span> tags<span class="p">.</span><span class="o">length</span>() <span class="e">}}</span>&lt;/p&gt;
+&lt;p&gt;Theme: <span class="e">{{</span> theme.name <span class="e">}}</span> (<span class="e">{{</span> theme<span class="p">.</span><span class="o">length</span>() <span class="e">}}</span> keys)&lt;/p&gt;
+&lt;ul&gt;
+<span class="t">&lt;{</span> <span class="k">for</span> color <span class="k">in</span> theme.colors <span class="t">}&gt;</span>
+&lt;li&gt;<span class="e">{{</span> color <span class="e">}}</span>&lt;/li&gt;
+<span class="t">&lt;{</span> <span class="k">end for</span> <span class="t">}&gt;</span>
+&lt;/ul&gt;</code></pre>
+                        </div>
+                        <div class="pane pane-out">
+                            <div class="pane-head"><span class="arrow">→</span> Output</div>
+                            <div class="out-body">
+                                <p>Tags: [design, frontend, css]</p>
+                                <p>Tag count: 3</p>
+                                <p>Theme: Midnight (3 keys)</p>
+                                <ul class="out-list">
+                                    <li>#111</li>
+                                    <li>#eee</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="callout"><strong>Printing —</strong> echoing a list prints its items inside <code>[ … ]</code>; echoing a dictionary prints its keys and values inside <code>{ … }</code>. A null value prints as an empty string.</div>
+                </div>
+
                 <!-- Fallback (OR) -->
                 <div class="block-sub" id="fallback-or">
                     <h3>Fallback (OR)</h3>
-                    <p>The <code>or</code> operator works like Python's short-circuit evaluation: if the left-hand side is <strong>null</strong> (or missing), the expression resolves to the right-hand side. This is the idiomatic way to provide default values.</p>
+                    <p>The <code>or</code> operator uses short-circuit evaluation: if the left-hand side is <strong>null</strong> or <strong>false</strong>, the expression resolves to the right-hand side. Otherwise it keeps the left-hand side. This is the idiomatic way to provide default values.</p>
 
                     <p class="ex-given"><span class="tag">Given</span> <code>nickname</code> may be null, <code>username = "hero"</code>.</p>
 
@@ -722,7 +793,7 @@ footer{
                             </div>
                         </div>
                     </div>
-                    <div class="callout"><strong>How it works —</strong> <code>x or "fallback"</code> returns <code>x</code> if <code>x</code> has a value; otherwise it returns <code>"fallback"</code>. This is especially useful for optional fields, labels, and placeholder text.</div>
+                    <div class="callout"><strong>How it works —</strong> <code>x or "fallback"</code> returns <code>x</code> when <code>x</code> is truthy; otherwise it returns <code>"fallback"</code>. Only <code>null</code> and <code>false</code> are falsy — <code>0</code> and <code>""</code> count as values. This is especially useful for optional fields, labels, and placeholder text.</div>
                 </div>
 
                 <!-- Chaining -->
@@ -752,7 +823,7 @@ footer{
                             </div>
                         </div>
                     </div>
-                    <div class="callout"><strong>Why it matters —</strong> without <code>?.</code>, reading a property off a missing value stops the whole expression. Chaining lets you write one line instead of nesting an <code>if</code> around every optional field. Pair it with <code>or</code> for clean fallback values.</div>
+                    <div class="callout"><strong>Why it matters —</strong> without <code>?.</code>, reading a property off a missing value stops the whole expression. Chaining lets you write one line instead of nesting an <code>if</code> around every optional field. The first variable in the chain must exist in the context; <code>?.</code> protects the links after it. Pair it with <code>or</code> for clean fallback values.</div>
                 </div>
 
                 <!-- Simpler Version -->
@@ -774,21 +845,23 @@ footer{
 
                     <div class="block-sub deep" id="length">
                         <h4>Length</h4>
-                        <p><code>variable.length()</code> returns the number of items in a list, or the number of characters in a string.</p>
+                        <p><code>variable.length()</code> returns the number of items in a list, the number of keys in a dictionary, or the number of characters in a string.</p>
 
-                        <p class="ex-given"><span class="tag">Given</span> <code>items</code> has 3 entries, <code>username = "hero"</code>.</p>
+                        <p class="ex-given"><span class="tag">Given</span> <code>items</code> has 3 entries, <code>username = "hero"</code>, <code>theme = { "name": "Midnight", "dark": true }</code>.</p>
 
                         <div class="code-card reveal">
                             <div class="pane pane-tpl">
                                 <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
                                 <pre><code>&lt;p&gt;You have <span class="e">{{</span> items<span class="p">.</span><span class="o">length</span>() <span class="e">}}</span> items in your cart&lt;/p&gt;
-&lt;p&gt;Username "<span class="e">{{</span> username <span class="e">}}</span>" is <span class="e">{{</span> username<span class="p">.</span><span class="o">length</span>() <span class="e">}}</span> characters long&lt;/p&gt;</code></pre>
+&lt;p&gt;Username "<span class="e">{{</span> username <span class="e">}}</span>" is <span class="e">{{</span> username<span class="p">.</span><span class="o">length</span>() <span class="e">}}</span> characters long&lt;/p&gt;
+&lt;p&gt;Theme has <span class="e">{{</span> theme<span class="p">.</span><span class="o">length</span>() <span class="e">}}</span> keys&lt;/p&gt;</code></pre>
                             </div>
                             <div class="pane pane-out">
                                 <div class="pane-head"><span class="arrow">→</span> Output</div>
                                 <div class="out-body">
                                     <p>You have 3 items in your cart</p>
                                     <p>Username "hero" is 4 characters long</p>
+                                    <p>Theme has 2 keys</p>
                                 </div>
                             </div>
                         </div>
@@ -799,7 +872,7 @@ footer{
             <!-- Assign Statement -->
             <div class="block" id="assign-statement">
                 <h2>Assign Statement</h2>
-                <p><code>&lt;{ let variable = expression }&gt;</code> evaluates the expression and stores it in a named variable. You can then use <code>variable</code> anywhere later in the template — inside echoes, conditions, or further assignments.</p>
+                <p><code>&lt;{ let variable = expression }&gt;</code> evaluates the expression and stores it in a named variable. The expression can be a literal, a variable path, a calculation, or a list/dictionary literal. You can then use <code>variable</code> anywhere later in the template — inside echoes, conditions, or further assignments.</p>
 
                 <p class="ex-given"><span class="tag">Given</span> <code>price = 49.99</code>, <code>quantity = 3</code>, <code>status</code> may be null.</p>
 
@@ -826,7 +899,7 @@ footer{
                         </div>
                     </div>
                 </div>
-                <div class="callout"><strong>Tip —</strong> Variables are scoped to the template. Assign once and reuse anywhere below the assignment. This keeps your templates DRY and makes complex calculations readable.</div>
+                <div class="callout"><strong>Tip —</strong> Assign once and reuse anywhere below the assignment in the same scope. Inside a loop, the variable is available for that iteration. This keeps your templates DRY and makes complex calculations readable.</div>
             </div>
 
             <!-- If Condition -->
@@ -854,6 +927,7 @@ footer{
                         </div>
                     </div>
                 </div>
+                <div class="callout"><strong>Truthiness —</strong> only <code>false</code> and null are falsy. <code>0</code>, <code>""</code>, empty lists, and empty dictionaries are all truthy, so test sizes explicitly when needed (for example <code>items.length() &gt; 0</code>).</div>
             </div>
 
             <!-- For Condition -->
@@ -887,7 +961,7 @@ footer{
                 <!-- Loop Variable -->
                 <div class="block-sub" id="loop-variable">
                     <h3>Loop Variable</h3>
-                    <p>Add a name before the item — <code>&lt;{ for loop, item in items }&gt;</code> — to get a <code>loop</code> object alongside it. <code>loop.index</code> holds the current position.</p>
+                    <p>Add a name before the item — <code>&lt;{ for loop, item in items }&gt;</code> — to get a <code>loop</code> object alongside it. <code>loop.index</code> holds the current position, starting at <strong>0</strong>. The current item is also available on the loop object under the item's name — in the example below, <code>loop.step</code>.</p>
 
                     <p class="ex-given"><span class="tag">Given</span> <code>instructions</code> is a list of 3 strings.</p>
 
@@ -896,7 +970,7 @@ footer{
                             <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
                             <pre><code>&lt;ol&gt;
 <span class="t">&lt;{</span> <span class="k">for</span> loop, step <span class="k">in</span> instructions <span class="t">}&gt;</span>
-&lt;li&gt;Step <span class="e">{{</span> loop.index <span class="e">}}</span>: <span class="e">{{</span> step <span class="e">}}</span>&lt;/li&gt;
+&lt;li&gt;Step <span class="e">{{</span> loop.index <span class="e">}}</span>: <span class="e">{{</span> loop.step <span class="e">}}</span>&lt;/li&gt;
 <span class="t">&lt;{</span> <span class="k">end for</span> <span class="t">}&gt;</span>
 &lt;/ol&gt;</code></pre>
                         </div>
@@ -904,14 +978,14 @@ footer{
                             <div class="pane-head"><span class="arrow">→</span> Output</div>
                             <div class="out-body">
                                 <ol class="out-ol">
-                                    <li>Step 1: Preheat the oven</li>
-                                    <li>Step 2: Mix the ingredients</li>
-                                    <li>Step 3: Bake for 20 minutes</li>
+                                    <li>Step 0: Preheat the oven</li>
+                                    <li>Step 1: Mix the ingredients</li>
+                                    <li>Step 2: Bake for 20 minutes</li>
                                 </ol>
                             </div>
                         </div>
                     </div>
-                    <div class="callout"><strong>Note —</strong> <code>loop.index</code> starts at 1, so it prints ready to read — no need to add 1 to it yourself.</div>
+                    <div class="callout"><strong>Note —</strong> <code>loop.index</code> starts at 0. Add 1 when you need a human-readable position: <code>{{ loop.index + 1 }}</code>.</div>
                 </div>
             </div>
         </section>
@@ -920,7 +994,7 @@ footer{
         <section id="examples">
             <div class="eyebrow">04 — Putting it together</div>
             <h1>Examples</h1>
-            <p class="lede">Three complete templates that combine echoing, assigning, branching, chaining, and loops the way you'd actually use them.</p>
+            <p class="lede">Four complete templates that combine echoing, assigning, branching, chaining, loops, and membership checks the way you'd actually use them.</p>
 
             <div class="block" style="padding-top:8px;">
                 <h3>Product grid with stock state</h3>
@@ -1000,10 +1074,10 @@ footer{
                         <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
                         <pre><code>&lt;nav&gt;
 <span class="t">&lt;{</span> <span class="k">for</span> loop, page <span class="k">in</span> pages <span class="t">}&gt;</span>
-<span class="t">&lt;{</span> <span class="k">if</span> loop.index <span class="o">==</span> current <span class="t">}&gt;</span>
+<span class="t">&lt;{</span> <span class="k">if</span> loop.index <span class="o">+</span> <span class="n">1</span> <span class="o">==</span> current <span class="t">}&gt;</span>
 &lt;span class="active"&gt;<span class="e">{{</span> page <span class="e">}}</span>&lt;/span&gt;
 <span class="t">&lt;{</span> <span class="k">else</span> <span class="t">}&gt;</span>
-&lt;a href="?p=<span class="e">{{</span> loop.index <span class="e">}}</span>"&gt;<span class="e">{{</span> page <span class="e">}}</span>&lt;/a&gt;
+&lt;a href="?p=<span class="e">{{</span> page <span class="e">}}</span>"&gt;<span class="e">{{</span> page <span class="e">}}</span>&lt;/a&gt;
 <span class="t">&lt;{</span> <span class="k">end if</span> <span class="t">}&gt;</span>
 <span class="t">&lt;{</span> <span class="k">end for</span> <span class="t">}&gt;</span>
 &lt;/nav&gt;</code></pre>
@@ -1022,19 +1096,65 @@ footer{
                     </div>
                 </div>
             </div>
+
+            <div class="block">
+                <h3>Feature flags with list and dictionary literals</h3>
+                <p class="ex-given"><span class="tag">Given</span> <code>enabled = ["comments", "search"]</code>.</p>
+                <div class="code-card reveal">
+                    <div class="pane pane-tpl">
+                        <div class="pane-head"><span class="brand-mark" style="padding:2px 6px;font-size:11px;">&lt;{&nbsp;}&gt;</span> Template</div>
+                        <pre><code><span class="t">&lt;{</span> <span class="a">let</span> flags <span class="o">=</span> { <span class="s">"comments"</span><span class="p">:</span> <span class="k">true</span>, <span class="s">"search"</span><span class="p">:</span> <span class="k">true</span>, <span class="s">"export"</span><span class="p">:</span> <span class="k">false</span> } <span class="t">}&gt;</span>
+&lt;nav&gt;
+<span class="t">&lt;{</span> <span class="k">if</span> <span class="s">"comments"</span> <span class="k">in</span> enabled <span class="k">and</span> flags.comments <span class="t">}&gt;</span>
+&lt;a href="/comments"&gt;Comments&lt;/a&gt;
+<span class="t">&lt;{</span> <span class="k">end if</span> <span class="t">}&gt;</span>
+<span class="t">&lt;{</span> <span class="k">if</span> <span class="s">"search"</span> <span class="k">in</span> enabled <span class="t">}&gt;</span>
+&lt;a href="/search"&gt;Search&lt;/a&gt;
+<span class="t">&lt;{</span> <span class="k">end if</span> <span class="t">}&gt;</span>
+<span class="t">&lt;{</span> <span class="k">if</span> <span class="s">"export"</span> <span class="k">not in</span> enabled <span class="t">}&gt;</span>
+&lt;span&gt;Export disabled&lt;/span&gt;
+<span class="t">&lt;{</span> <span class="k">end if</span> <span class="t">}&gt;</span>
+&lt;/nav&gt;</code></pre>
+                    </div>
+                    <div class="pane pane-out">
+                        <div class="pane-head"><span class="arrow">→</span> Output</div>
+                        <div class="out-body">
+                            <div class="out-pillrow">
+                                <span class="out-pill active">Comments</span>
+                                <span class="out-pill active">Search</span>
+                            </div>
+                            <p class="out-tag" style="margin-top:10px;">Export disabled</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- ============ CONTEXT ============ -->
         <section id="context">
             <div class="eyebrow">05 — Data in</div>
             <h1>Context</h1>
-            <p class="lede">When a template is rendered, it receives a structured dictionary — the <strong>context</strong>. Every variable you reference in a template (<code>user.name</code>, <code>products</code>, <code>currency.symbol</code>) comes from this object. Here is a real example of the context shape passed to a checkout template.</p>
+            <p class="lede">When a template is rendered, it receives a structured dictionary — the <strong>context</strong>. Every variable you reference in a template (<code>merchant_profile.business_name</code>, <code>checkout_products</code>, <code>currency.symbol</code>) comes from this object. Here is a real example of the context shape passed to a checkout template.</p>
 
             <p style="margin-bottom:6px;">The tree below shows every top-level key, its type, and how nested objects and lists are organized. Use it as a reference for what's available when you write templates.</p>
 
             <div class="ctx-wrap reveal">
                 <div class="ctx-head">📦 Context Dictionary</div>
-                <div class="ctx-body"><code><span class="ck">context</span> <span class="cp">=</span> {
+                                <div class="ctx-body"><code><span class="ck">context</span> <span class="cp">=</span> {
+<span class="cm">  // ── Links &amp; tokens ──</span>
+<span class="ck">  "links"</span><span class="cp">:</span> {
+    <span class="ck">"validate_cart"</span><span class="cp">:</span> <span class="cs">"&lt;string — URL&gt;"</span>
+  }<span class="cp">,</span>
+<span class="ck">  "tokens"</span><span class="cp">:</span> {
+    <span class="ck">"api_token"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span>
+  }<span class="cp">,</span>
+
+<span class="cm">  // ── Page assets ──</span>
+<span class="ck">  "icon"</span><span class="cp">:</span> <span class="cs">"&lt;string — URL&gt;"</span><span class="cp">,</span>
+<span class="ck">  "style"</span><span class="cp">:</span> <span class="cs">"&lt;string — URL&gt;"</span><span class="cp">,</span>
+<span class="ck">  "script_js"</span><span class="cp">:</span> <span class="cs">"&lt;string — URL&gt;"</span><span class="cp">,</span>
+<span class="ck">  "translations_js"</span><span class="cp">:</span> <span class="cs">"&lt;string — URL&gt;"</span><span class="cp">,</span>
+
 <span class="cm">  // ── Scalar values ──</span>
 <span class="ck">  "almtgerprotectvalue"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
 <span class="ck">  "baseURL"</span><span class="cp">:</span> <span class="cs">"&lt;string — checkout URL&gt;"</span><span class="cp">,</span>
@@ -1094,18 +1214,19 @@ footer{
       {
         <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span>
         <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
-        <span class="ck">"internal_name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
-        <span class="ck">"type"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
-        <span class="ck">"initial_value"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
-        <span class="ck">"options"</span><span class="cp">:</span> <span class="cs">"&lt;string | null&gt;"</span><span class="cp">,</span>
-        <span class="ck">"option_type"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+        <span class="ck">"internal_name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span>
+        <span class="ck">"type"</span><span class="cp">:</span> <span class="cs">"&lt;string — text | decimal | options | integer | email | phone_number | url&gt;"</span><span class="cp">,</span>
+        <span class="ck">"initial_value"</span><span class="cp">:</span> <span class="cs">"&lt;string | number&gt;"</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span>
+        <span class="ck">"options"</span><span class="cp">:</span> [<span class="cs">"&lt;string&gt;"</span>] <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span>
+        <span class="ck">"option_type"</span><span class="cp">:</span> <span class="cs">"&lt;string — text | color | image&gt;"</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span>
         <span class="ck">"is_required"</span><span class="cp">:</span> <span class="cb">true</span> <span class="ct">|</span> <span class="cb">false</span><span class="cp">,</span>
-        <span class="ck">"min_value"</span><span class="cp">:</span> <span class="cn">0</span><span class="cp">,</span>
-        <span class="ck">"max_value"</span><span class="cp">:</span> <span class="cn">100</span><span class="cp">,</span>
-        <span class="ck">"min_length"</span><span class="cp">:</span> <span class="cn">0</span><span class="cp">,</span>
-        <span class="ck">"max_length"</span><span class="cp">:</span> <span class="cn">255</span><span class="cp">,</span>
+        <span class="ck">"min_value"</span><span class="cp">:</span> <span class="cn">0</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span>
+        <span class="ck">"max_value"</span><span class="cp">:</span> <span class="cn">100</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span>
+        <span class="ck">"min_length"</span><span class="cp">:</span> <span class="cn">0</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span>
+        <span class="ck">"max_length"</span><span class="cp">:</span> <span class="cn">255</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span>
         <span class="ck">"allow_delete"</span><span class="cp">:</span> <span class="cb">true</span> <span class="ct">|</span> <span class="cb">false</span><span class="cp">,</span>
-        <span class="ck">"display"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span>
+        <span class="ck">"display"</span><span class="cp">:</span> <span class="cb">true</span> <span class="ct">|</span> <span class="cb">false</span><span class="cp">,</span>
+        <span class="ck">"schema"</span><span class="cp">:</span> <span class="cs">"&lt;string — escaped JSON&gt;"</span>
       }
     ]
   }<span class="cp">,</span>
@@ -1116,9 +1237,9 @@ footer{
       {
         <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span>
         <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
-        <span class="ck">"internal_name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
-        <span class="ck">"type"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
-        <span class="cm">/* … same shape as customer custom_attributes */</span>
+        <span class="ck">"internal_name"</span><span class="cp">:</span> <span class="cs">"&lt;string — country | governorate | city | line_1 | ...&gt;"</span><span class="cp">,</span>
+        <span class="ck">"type"</span><span class="cp">:</span> <span class="cs">"&lt;string — select | text | ...&gt;"</span><span class="cp">,</span>
+        <span class="cm">/* … same remaining shape as customer custom_attributes */</span>
       }
     ]
   }<span class="cp">,</span>
@@ -1132,21 +1253,22 @@ footer{
         <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
         <span class="ck">"summary"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
         <span class="ck">"description"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
-        <span class="ck">"sales_price"</span><span class="cp">:</span> <span class="cn">49.99</span><span class="cp">,</span>
+        <span class="ck">"sales_price"</span><span class="cp">:</span> <span class="cn">49.99</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span>
         <span class="ck">"price"</span><span class="cp">:</span> <span class="cn">39.99</span><span class="cp">,</span>
         <span class="ck">"main_image"</span><span class="cp">:</span> {
           <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span>
           <span class="ck">"url"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span>
-          <span class="ck">"alt"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span>
+          <span class="ck">"alt"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+          <span class="ck">"is_main_image"</span><span class="cp">:</span> <span class="cb">true</span>
         }<span class="cp">,</span>
         <span class="ck">"images"</span><span class="cp">:</span> [
-          { <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span> <span class="ck">"url"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span> <span class="ck">"alt"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> }
+          { <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string — secure&gt;"</span><span class="cp">,</span> <span class="ck">"url"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> <span class="ct">|</span> <span class="cr">null</span><span class="cp">,</span> <span class="ck">"alt"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span> <span class="ck">"is_main_image"</span><span class="cp">:</span> <span class="cb">true</span> <span class="ct">|</span> <span class="cb">false</span> }
         ]<span class="cp">,</span>
         <span class="ck">"custom_attributes"</span><span class="cp">:</span> [
           <span class="cm">/* … same shape as customer custom_attributes */</span>
         ]<span class="cp">,</span>
         <span class="ck">"product_specifications"</span><span class="cp">:</span> [
-          { <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span> <span class="ck">"value"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> }
+          { <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span> <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span> <span class="ck">"value"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> }
         ]
       }
     }
@@ -1159,7 +1281,7 @@ footer{
 
 <span class="cm">  // ── Promotion banners ──</span>
 <span class="ck">  "promotion_banners"</span><span class="cp">:</span> [
-    { <span class="ck">"color"</span><span class="cp">:</span> <span class="cs">"&lt;string — hex&gt;"</span><span class="cp">,</span> <span class="ck">"text"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span> }
+    { <span class="ck">"text"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span> <span class="ck">"color"</span><span class="cp">:</span> <span class="cs">"&lt;string — gray | red | green | blue&gt;"</span> }
   ]<span class="cp">,</span>
 
 <span class="cm">  // ── Payment methods ──</span>
@@ -1168,15 +1290,19 @@ footer{
       <span class="ck">"id"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
       <span class="ck">"display_name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
       <span class="ck">"description"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
-      <span class="ck">"is_active"</span><span class="cp">:</span> <span class="cb">true</span> <span class="ct">|</span> <span class="cb">false</span><span class="cp">,</span>
-      <span class="ck">"is_default"</span><span class="cp">:</span> <span class="cb">true</span> <span class="ct">|</span> <span class="cb">false</span><span class="cp">,</span>
-      <span class="ck">"sort_order"</span><span class="cp">:</span> <span class="cn">1</span>
+      <span class="ck">"is_default"</span><span class="cp">:</span> <span class="cb">true</span> <span class="ct">|</span> <span class="cb">false</span>
     }
-  ]
+  ]<span class="cp">,</span>
+
+<span class="cm">  // ── Shipping ──</span>
+<span class="ck">  "shipping_rate"</span><span class="cp">:</span> {
+    <span class="ck">"name"</span><span class="cp">:</span> <span class="cs">"&lt;string&gt;"</span><span class="cp">,</span>
+    <span class="ck">"price"</span><span class="cp">:</span> <span class="cn">0</span>
+  }
 }</code></div>
             </div>
 
-            <div class="callout"><strong>How to read this —</strong> Every key shown above is available as a top-level variable in your template. For example, <code>{{ merchant_profile.business_name }}</code> prints the merchant's name; <code>&lt;{ for product in checkout_products }&gt;</code> loops over every product in the cart. Fields marked <code>| null</code> can be missing — use <code>?.</code> chaining or <code>or</code> fallback to handle them safely.</div>
+            <div class="callout"><strong>How to read this —</strong> Every key shown above is available as a top-level variable in your template. For example, <code>{{ merchant_profile.business_name }}</code> prints the merchant's name; <code>&lt;{ for product in checkout_products }&gt;</code> loops over every product in the cart; and <code>{{ links.validate_cart }}</code> prints the cart validation URL. Fields marked <code>| null</code> can be missing — use <code>?.</code> chaining or <code>or</code> fallback to handle them safely.</div>
         </section>
 
         <footer>
